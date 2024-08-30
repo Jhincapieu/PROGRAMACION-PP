@@ -7,8 +7,8 @@ class EstadoMaquina(Enum):
 
 class Maquina:
     
-    tiempoProgramable=0
-    tiemposTrabajos=[] #la idea es que sean los elementos sean listas [NumeroTrabajo,tiempoInicio,tiempoFin]
+    
+     #la idea es que sean los elementos sean listas [NumeroTrabajo,tiempoInicio,tiempoFin]
      
     
     
@@ -16,7 +16,9 @@ class Maquina:
         self.numeroMaquina= numeroMaquina
         self.trabajoActual=trabajoActual
         self.estadoMaquina=estadoMaquina
+        self.tiemposTrabajos=[]
+        self.tiempoProgramable=0
         
     def __str__(self) -> str:
-        return f"Maquina {self.numeroMaquina} - Trabajo actual: {self.trabajoActual} - Estado Maquina: {self.estadoMaquina} - Tiempo programable: {self.tiempoProgramable}"    
+        return f"Maquina {self.numeroMaquina} - Trabajo actual: {self.trabajoActual} - Estado Maquina: {self.estadoMaquina} - Tiempo programable: {self.tiempoProgramable} - Tiempos: {self.tiemposTrabajos}"    
     

@@ -1,4 +1,5 @@
 from enum import Enum
+from typing import List
 
 class EstadoTrabajo(Enum):
     NO_INICIADO=1
@@ -9,7 +10,7 @@ class EstadoTrabajo(Enum):
 class Trabajo:
     
     
-    def __init__(self,numeroTrabajo, maquinaActual,estadoTrabajo: EstadoTrabajo,ordenProcesamiento,tiemposProcesamiento) -> None:
+    def __init__(self,numeroTrabajo, maquinaActual,estadoTrabajo: EstadoTrabajo,ordenProcesamiento: List[int] ,tiemposProcesamiento: List[int]) -> None:
         self.numeroTrabajo=numeroTrabajo
         self.maquinaActual=maquinaActual
         self.estadoTrabajo=estadoTrabajo
