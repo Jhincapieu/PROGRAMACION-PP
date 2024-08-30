@@ -25,6 +25,24 @@ def importar():
     
     tiemposMaquinas=datos[1].str.split(expand=True)
     
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
     
 def crearListas():
     
@@ -42,6 +60,22 @@ def crearListas():
             orden.append(int(ordenMaquinas.iloc[i-1,s]))
         trabajo=Trabajo(i,0,EstadoTrabajo.NO_INICIADO,orden,tiempos)
         trabajos.append(trabajo)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 def algoritmoInicial():
     global maquinas, trabajos, tiempoProgramable
@@ -62,6 +96,43 @@ def algoritmoInicial():
     for i in range(len(trabajos)):
         print(trabajos[i])
     print("-------------------")
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
     
     
@@ -147,23 +218,7 @@ def algoritmoInicial():
         actializarEstados()
         calcularTiempoProgramable()
         
-        
-                        
-                    
 
-                        
-                        
-
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
         #Al final verificamos si sigue pendiente algun trabajo
         contadorPendientes=0
         for trabajo in trabajos:
@@ -171,6 +226,35 @@ def algoritmoInicial():
                 contadorPendientes+=1
         if contadorPendientes==0:
             pendiente=False
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
             
 def asignarTrabajo_Maquina(numeroMaquinaAsignar, numeroTrabajoAsignar):
     global tiempoProgramable
@@ -212,6 +296,24 @@ def asignarTrabajo_Maquina(numeroMaquinaAsignar, numeroTrabajoAsignar):
     #Eliminamos el primer tiempo y el primer elemento en el orden
     trabajos[numeroTrabajoAsignar-1].ordenProcesamiento.pop(0)
     trabajos[numeroTrabajoAsignar-1].tiemposProcesamiento.pop(0)
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
     
 def asignarTrabajo_MaquinaBloq(numeroMaquinaAsignar1, numeroTrabajoAsignar1,numeroMaquinaAsignar2, numeroTrabajoAsignar2):
@@ -256,6 +358,20 @@ def asignarTrabajo_MaquinaBloq(numeroMaquinaAsignar1, numeroTrabajoAsignar1,nume
     
     
     
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
                         
 def calcularTiempoProgramable():
     global tiempoProgramable, tiemposProgramablesAnteriores,maquinas
@@ -276,9 +392,25 @@ def calcularTiempoProgramable():
     tiemposProgramablesAnteriores.append(tiempoProgramable)
     print(f"El Nuevo tiempo programable es: {tiempoProgramable}")
     print(f"Se añade a la lista de tiempos {tiemposProgramablesAnteriores}")
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
     
 def actializarEstados():
+    
     global tiempoProgramable, maquinas, trabajos
+    
     print("Actualizando el estado del sistema")
     print("----------MAQUINAS----------")
     for i in range(len(maquinas)):
