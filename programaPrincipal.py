@@ -538,8 +538,10 @@ def actializarEstados():
     print("-------------------")
     input("Presione una tecla para continuar: ")
             
-    
-    
+
+def creacionGraficos(maquinas: List[Maquina]):
+    for mauqina in maquinas:
+        pass
 
 
 def main():
@@ -548,4 +550,4 @@ def main():
     algoritmoInicial()
     print("TERMINADO")
     
-main()
+#main()
