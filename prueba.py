@@ -23,3 +23,4 @@ ax.legend(title='Tarea')
 
 # Mostrar el gráfico
 plt.show()
+print(df)

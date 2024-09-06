@@ -6,6 +6,13 @@ from Trabajo import Trabajo,EstadoTrabajo
 from typing import List
 import random
 import copy
+import matplotlib.pyplot as plt
+import plotly.express as px
+import plotly.graph_objects as go
+
+
+
+
 prob=0.8
 ordenMaquinas=pd.DataFrame
 tiemposMaquinas=pd.DataFrame
@@ -362,6 +369,7 @@ def asignarTrabajo_Maquina(numeroMaquinaAsignar, numeroTrabajoAsignar):
         #estado
         maquinas[trabajos[numeroTrabajoAsignar-1].maquinaActual-1].estadoMaquina=EstadoMaquina.LIBRE
         #tiempo que estuvo en bloqueo
+        
         lista=["Bloqueo",maquinas[trabajos[numeroTrabajoAsignar-1].maquinaActual-1].tiempoProgramable,tiempoProgramable]
         maquinas[trabajos[numeroTrabajoAsignar-1].maquinaActual-1].tiemposTrabajos.append(lista)
         #trabajo actual
@@ -523,6 +531,7 @@ def actializarEstados():
             if not trabajos[maquina.trabajoActual-1].ordenProcesamiento:
                 trabajos[maquina.trabajoActual-1].estadoTrabajo=EstadoTrabajo.TERMINADO
                 maquinas[maquina.numeroMaquina-1].estadoMaquina=EstadoMaquina.LIBRE
+                maquinas[maquina.numeroMaquina-1].trabajoActual=0
             else:
                 maquinas[maquina.numeroMaquina-1].estadoMaquina=EstadoMaquina.BLOQUEO
                 trabajos[maquina.trabajoActual-1].estadoTrabajo=EstadoTrabajo.PROCESADO
@@ -540,8 +549,58 @@ def actializarEstados():
             
 
 def creacionGraficos(maquinas: List[Maquina]):
-    for mauqina in maquinas:
-        pass
+    filas = []
+    
+    for maquina in maquinas:
+        for lista in maquina.tiemposTrabajos:
+            filas.append({
+                "Tarea": lista[0], 
+                "Inicio": lista[1], 
+                "Fin": lista[2], 
+                "Duracion": lista[2] - lista[1],  # Calculamos la duración
+                "Maquina": f"Máquina {maquina.numeroMaquina}"  # Etiqueta para las máquinas
+            })
+    
+    # Convertir las columnas Inicio y Fin a tipo int (si ya están en int)
+    df = pd.DataFrame(filas)
+    print("Datos del DataFrame:")
+    print(df)
+    graficarGantt(df)
+def graficarGantt(df):
+    fig = go.Figure()
+
+    # Crear una traza para cada tarea
+    for tarea in df['Tarea'].unique():
+        df_tarea = df[df['Tarea'] == tarea]
+        
+        fig.add_trace(go.Bar(
+            x=df_tarea['Duracion'],  # La duración de la tarea
+            y=df_tarea['Maquina'],   # Las máquinas en el eje Y
+            base=df_tarea['Inicio'],  # El inicio de la tarea
+            name=str(tarea),
+            orientation='h',
+            text=df_tarea['Tarea'],  # Mostrar el nombre de la tarea
+            textposition='inside',  # Posicionar el texto dentro de la barra
+            texttemplate='%{text}'  # Usar el texto directamente sin formato adicional
+        ))
+
+    fig.update_layout(
+        barmode='stack',
+        xaxis_title="Unidades de Tiempo",
+        yaxis_title="Máquina",
+        title="Gráfico de Gantt: Duración de tareas por máquina",
+        xaxis=dict(
+            type='linear',
+            tickmode='linear',
+            dtick=1
+        ),
+        yaxis=dict(
+            title='Máquina',
+            autorange='reversed'
+        )
+    )
+    
+    fig.show()
 
 
 def main():
@@ -549,5 +608,7 @@ def main():
     crearListas()
     algoritmoInicial()
     print("TERMINADO")
+    creacionGraficos(maquinas)
     
-#main()
+main()
+
