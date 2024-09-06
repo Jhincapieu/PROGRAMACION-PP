@@ -9,7 +9,7 @@ import copy
 import matplotlib.pyplot as plt
 import plotly.express as px
 import plotly.graph_objects as go
-
+import networkx as nx
 
 
 
@@ -603,12 +603,53 @@ def graficarGantt(df):
     fig.show()
 
 
+def crearGrafo():
+    # Crear un grafo dirigido
+    G = nx.DiGraph()
+
+    # Crear las conexiones dentro de cada trabajo respetando la precedencia
+    for i in range(ordenMaquinas.shape[0]):  # Iterar sobre los trabajos
+        for j in range(ordenMaquinas.shape[1] - 1):  # Iterar sobre las máquinas en el orden dado
+            trabajo = f"Trabajo {i+1}"
+            estado_actual = f"{trabajo} en Maquina {ordenMaquinas.iloc[i, j]}"
+            estado_siguiente = f"{trabajo} en Maquina {ordenMaquinas.iloc[i, j+1]}"
+            
+            # Añadir una arista del estado actual al estado siguiente respetando la precedencia
+            G.add_edge(estado_actual, estado_siguiente)
+
+    # Conectar trabajos entre diferentes máquinas para permitir que las hormigas exploren otras rutas
+    # Esta parte conecta los trabajos en diferentes máquinas, permitiendo que las hormigas cambien de trabajo.
+    for j in range(ordenMaquinas.shape[1]):  # Iterar sobre las columnas (máquinas)
+        for i in range(ordenMaquinas.shape[0]):  # Iterar sobre los trabajos
+            trabajo_origen = f"Trabajo {i+1} en Maquina {ordenMaquinas.iloc[i, j]}"
+            for k in range(i + 1, ordenMaquinas.shape[0]):  # Conectar a otros trabajos en la misma o diferente máquina
+                trabajo_destino = f"Trabajo {k+1} en Maquina {ordenMaquinas.iloc[k, j]}"
+                
+                # Conexiones entre trabajos en la misma máquina
+                G.add_edge(trabajo_origen, trabajo_destino)
+                G.add_edge(trabajo_destino, trabajo_origen)
+
+    # Conectar diferentes trabajos entre diferentes máquinas
+    for i in range(ordenMaquinas.shape[0]):
+        for j in range(ordenMaquinas.shape[1]):
+            trabajo_origen = f"Trabajo {i+1} en Maquina {ordenMaquinas.iloc[i, j]}"
+            for k in range(ordenMaquinas.shape[0]):
+                if i != k:  # Evitar conexión entre el mismo trabajo
+                    trabajo_destino = f"Trabajo {k+1} en Maquina {ordenMaquinas.iloc[k, (j+1) % ordenMaquinas.shape[1]]}"
+                    G.add_edge(trabajo_origen, trabajo_destino)
+
+    # Dibujar el grafo sin etiquetas de las aristas
+    pos = nx.spring_layout(G)  # Layout del grafo
+    nx.draw(G, pos, with_labels=True, node_size=2000, node_color="lightgreen", font_size=8, font_weight='bold')
+
+    plt.show()
+    
 def main():
     importar()
     crearListas()
     algoritmoInicial()
     print("TERMINADO")
     creacionGraficos(maquinas)
-    
+    crearGrafo()
 main()
 

@@ -16,8 +16,8 @@ class Trabajo:
         self.estadoTrabajo=estadoTrabajo
         self.ordenProcesamiento=ordenProcesamiento
         self.tiemposProcesamiento=tiemposProcesamiento
-        self.tiemposProcesamientoGuardados=tiemposProcesamiento
-        self.ordenProcesamientoGuardados=ordenProcesamiento
+        self.tiemposProcesamientoGuardados=tiemposProcesamiento.copy()
+        self.ordenProcesamientoGuardados=ordenProcesamiento.copy()
     
     def __str__(self) -> str:
         
