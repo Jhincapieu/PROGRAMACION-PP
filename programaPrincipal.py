@@ -271,12 +271,12 @@ def algoritmoInicial():
                         maquina1=maquina
                         print(f"Se asignó  el trabajo {trab.numeroTrabajo} a la máquina {maquina1.numeroMaquina}")
                         asignarTrabajo_Maquina(maquina1.numeroMaquina,trab.numeroTrabajo)
-                        input("Presione una tecla para continuar: ")
+                        #input("Presione una tecla para continuar: ")
                         
                         
                 else:
                     print("-----------------------------------------------NO SE ASIGNÓ NADA--------------------------------------------")
-                    input("Presione una tecla para continuar: ")
+                    #input("Presione una tecla para continuar: ")
         
         calcularTiempoProgramable()
         
@@ -545,7 +545,7 @@ def actializarEstados():
     for i in range(len(trabajos)):
         print(trabajos[i])
     print("-------------------")
-    input("Presione una tecla para continuar: ")
+    #input("Presione una tecla para continuar: ")
             
 
 def creacionGraficos(maquinas: List[Maquina]):
