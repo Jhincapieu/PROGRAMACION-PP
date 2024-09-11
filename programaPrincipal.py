@@ -12,6 +12,9 @@ import plotly.graph_objects as go
 import networkx as nx
 import numpy as np
 import re
+import copy
+nodoActual=None
+mejorMaquinas: List[Maquina]=[]
 G:nx.digraph
 nodosVisitados=[]
 patron = r"Trabajo (\d+) en Maquina (\d+)"
@@ -629,7 +632,7 @@ def actializarEstados():
     
     
     for maquina in maquinas:
-        if maquina.tiempoProgramable==tiempoProgramable and maquina.tiempoProgramable!=0:
+        if maquina.tiempoProgramable>=tiempoProgramable and maquina.tiempoProgramable!=0:
             if not trabajos[maquina.trabajoActual-1].ordenProcesamiento:
                 trabajos[maquina.trabajoActual-1].estadoTrabajo=EstadoTrabajo.TERMINADO
                 maquinas[maquina.numeroMaquina-1].estadoMaquina=EstadoMaquina.LIBRE
@@ -777,13 +780,19 @@ def crearGrafo():
 
 # Asegúrate de definir 'ordenMaquinas' antes de llamar a esta función
 def terminado(camino,G):
-    
+    sale=False
     nodos=set(G.nodes())
     
     nodosVisitados=set(camino)
     print(nodos)
     print(nodosVisitados==nodos)
-    return nodosVisitados==nodos
+    contador=0
+    for trab in trabajos:
+        if not trab.ordenProcesamiento:
+            contador+=1
+    if contador==len(trabajos) or nodosVisitados==nodos:
+        sale=True
+    return sale
 
 
 
@@ -804,8 +813,8 @@ def terminado(camino,G):
 
 
 
-def calcularProbabilidad(hormiga, nodoActual, posiblesSiguientes, feromona, tiempo_ejecucion, alpha, beta, trabajosProcesados,camino):
-    global nodosVisitados
+def calcularProbabilidad(hormiga, posiblesSiguientes, feromona, tiempo_ejecucion, alpha, beta, trabajosProcesados,camino):
+    global nodosVisitados, nodoActual
     pos=[]
     ciclo=[]
     patron = r"Trabajo (\d+) en Maquina (\d+)"
@@ -819,16 +828,18 @@ def calcularProbabilidad(hormiga, nodoActual, posiblesSiguientes, feromona, tiem
         if coincidencia:
             trabajo = int(coincidencia.group(1))
             maquina = int(coincidencia.group(2))
-        #Caso traspaso
-        if maquinas[maquina-1].estadoMaquina==EstadoMaquina.LIBRE and trabajos[trabajo-1].estadoTrabajo==EstadoTrabajo.PROCESADO and trabajos[trabajo-1].ordenProcesamiento[0]==maquina:
-            pos.append(posibles)
-        #Caso ciclos o intercambios
-        elif maquinas[maquina-1].estadoMaquina==EstadoMaquina.BLOQUEO and ciclosh(maquinas[maquina-1],trabajosProcesados) and trabajos[trabajo-1].ordenProcesamiento[0]==maquina:
-            pos.append(posibles)
-            ciclo.append(posibles)
-        #Caso no iniciados
-        elif trabajos[trabajo-1].ordenProcesamiento:
-            if trabajos[trabajo-1].estadoTrabajo==EstadoTrabajo.NO_INICIADO and maquinas[maquina-1].estadoMaquina==EstadoMaquina.LIBRE and trabajos[trabajo-1].ordenProcesamiento[0]==maquina:
+        if trabajos[trabajo-1].ordenProcesamiento:
+            #Caso traspaso
+            if maquinas[maquina-1].estadoMaquina==EstadoMaquina.LIBRE and trabajos[trabajo-1].estadoTrabajo==EstadoTrabajo.PROCESADO and trabajos[trabajo-1].ordenProcesamiento[0]==maquina:
+                pos.append(posibles)
+            #Caso ciclos o intercambios
+            
+            elif maquinas[maquina-1].estadoMaquina==EstadoMaquina.BLOQUEO and ciclosh(maquinas[maquina-1],trabajosProcesados) and trabajos[trabajo-1].ordenProcesamiento[0]==maquina:
+                pos.append(posibles)
+                ciclo.append(posibles)
+            #Caso no iniciados
+            
+            elif trabajos[trabajo-1].estadoTrabajo==EstadoTrabajo.NO_INICIADO and maquinas[maquina-1].estadoMaquina==EstadoMaquina.LIBRE and trabajos[trabajo-1].ordenProcesamiento[0]==maquina:
                 pos.append(posibles)
     feromona_nodos = np.array([feromona.get((nodoActual, nodo), 0) for nodo in pos])
     visibilidad_nodos = np.array([
@@ -846,12 +857,32 @@ def calcularProbabilidad(hormiga, nodoActual, posiblesSiguientes, feromona, tiem
         if siguiente_nodo in ciclo:
         
             cicloshh(maquinas[maquina-1],trabajosProcesados,camino)
+            if not str(siguiente_nodo) in camino:
+                        
+                        if str(siguiente_nodo)!= "None":
+                            camino.append(str(siguiente_nodo))
+                            nodoActual=str(siguiente_nodo)
+                            print(nodoActual)
         elif maquinas[maquina-1].estadoMaquina==EstadoMaquina.LIBRE and trabajos[trabajo-1].estadoTrabajo==EstadoTrabajo.PROCESADO:
+            
             asignarTrabajo_Maquina(maquina,trabajo)
+            if not str(siguiente_nodo) in camino:
+                        
+                        if str(siguiente_nodo)!= "None":
+                            camino.append(str(siguiente_nodo))
+                            calcularProbabilidad(hormiga, posiblesSiguientes, nx.get_edge_attributes(G, 'feromona'), tiempoProgramable, 1, 1,trabajosProcesados,camino)
+                            nodoActual=str(siguiente_nodo)
+                            print(nodoActual)
+            
         elif trabajos[trabajo-1].estadoTrabajo==EstadoTrabajo.NO_INICIADO and maquinas[maquina-1].estadoMaquina==EstadoMaquina.LIBRE:
             asignarTrabajo_Maquina(maquina,trabajo)
-        return siguiente_nodo
-        
+            if not str(siguiente_nodo) in camino:
+                        
+                        if str(siguiente_nodo)!= "None":
+                            camino.append(str(siguiente_nodo))
+                            nodoActual=str(siguiente_nodo)
+                            print(nodoActual)
+            
         
         
         
@@ -882,32 +913,50 @@ def extraer_numero_trabajo(texto):
     else:
         raise ValueError("El texto no tiene el formato esperado")    
     
-
+def actualizarFeromonas(grafo, mejor_cmax, camino, rho=0.1, Q=1.0):
+    
+    for u, v in grafo.edges:
+        grafo[u][v]['feromona'] *= (1 - rho)
+    
+    # Depósito de feromona en el camino correspondiente al mejor Cmax
+    for i in range(len(camino) - 1):
+        u, v = camino[i], camino[i+1]
+        if grafo.has_edge(u, v):
+            # Depósito de feromona proporcional a la calidad de la solución
+            grafo[u][v]['feromona'] += Q / mejor_cmax
+    return grafo
+    
 def aco():
-    global maquinas, trabajos, Cmax, tiemposProgramablesAnteriores, tiempoProgramable, trabajosProcesados, G, maquinasBloqueadas
+    global maquinas, trabajos, Cmax, tiemposProgramablesAnteriores, tiempoProgramable, trabajosProcesados, G, maquinasBloqueadas, mejorMaquinas, nodoActual
     tiemposProgramablesAnteriores=[]
-    numeroIteraciones=2
-    numeroHormigas=2
+    listaMaqRes=[]
+    numeroIteraciones=50
+    numeroHormigas=4
     nido = "Nido"
-    evaporation_rate = 0.5
-        
+    evaporation_rate = 0.05
+    prueba=[]
+    alpha=1 
+    beta=2
     mejorCamino=None
     for iteracion in range(numeroIteraciones):
         caminosanteriores=[]
+        CmaxAnteriores=[]
         tiempo_ejecucion=0
         
         for hormiga in range(numeroHormigas):
+            print("--------------------ESTADOS INICIALES--------------------")
             for maq in maquinas:
                 maq.estadoMaquina=EstadoMaquina.LIBRE
                 maq.tiempoProgramable=0
                 maq.tiemposTrabajos=[]
                 maq.trabajoActual=0
                 print(maq)
+            print("--------------------------------------------------------------")
             for trab in trabajos:
                 trab.estadoTrabajo=EstadoTrabajo.NO_INICIADO
                 trab.maquinaActual=0
-                trab.ordenProcesamiento=trab.ordenProcesamientoGuardados
-                trab.tiemposProcesamiento=trab.tiemposProcesamientoGuardados
+                trab.ordenProcesamiento=trab.ordenProcesamientoGuardados.copy()
+                trab.tiemposProcesamiento=trab.tiemposProcesamientoGuardados.copy()
                 print(trab)
             
             #Iniciamos la hormiga en el hormiguero
@@ -918,6 +967,7 @@ def aco():
             tiemposProgramablesAnteriores=[]
             
             while not terminado(camino,G):
+                print("---------------------------EMPIEZA HORMIGA-------------------------")
                 actializarEstados()
                 trabajosProcesados=[]
                 maquinasBloqueadas=[]
@@ -928,33 +978,63 @@ def aco():
                     if trabajo.estadoTrabajo==EstadoTrabajo.PROCESADO:
                         trabajosProcesados.append(trabajo)
                 posiblesSiguientes=list(G.successors(nodoActual))
-                siguienteNodo=calcularProbabilidad(hormiga, nodoActual, posiblesSiguientes, nx.get_edge_attributes(G, 'feromona'), tiempoProgramable, 1, 1,trabajosProcesados,camino)
+                calcularProbabilidad(hormiga, posiblesSiguientes, nx.get_edge_attributes(G, 'feromona'), tiempoProgramable, alpha, beta,trabajosProcesados,camino)
                 
-                if not str(siguienteNodo) in camino:
-                    
-                    if str(siguienteNodo)!= "None":
-                        camino.append(str(siguienteNodo))
-                        nodoActual=str(siguienteNodo)
+                
                 calcularTiempoProgramable()
+                print(tiempoProgramable)
                 
             caminosanteriores.append(camino)
-        #mejor_camino = min(caminosanteriores, key=lambda x: evaluar_camino(x, tiempo_ejecucion))
-        
-    print(caminosanteriores)
-                
-                
+            CmaxAnteriores.append(tiemposProgramablesAnteriores[-1])
+            prueba.append(tiemposProgramablesAnteriores[-1])
             
+            listaMaqRes.append(copy.deepcopy(maquinas))
+        #creacionGraficos(maquinas)
+        #mejor_camino = min(caminosanteriores, key=lambda x: evaluar_camino(x, tiempo_ejecucion))
+        G=actualizarFeromonas(G, max(CmaxAnteriores), caminosanteriores[CmaxAnteriores.index(max(CmaxAnteriores))], evaporation_rate, Q=2)
+        
+        if max(CmaxAnteriores)<Cmax:
+            aa=listaMaqRes[CmaxAnteriores.index(max(CmaxAnteriores))].copy()
+            mejorCaminoT=caminosanteriores[CmaxAnteriores.index(max(CmaxAnteriores))].copy()
+            Cmax=copy.deepcopy(max(CmaxAnteriores))
+            mejorMaquinas.pop(0)
+            mejorMaquinas=copy.deepcopy(aa)
+            creacionGraficos(mejorMaquinas)
+    
+    print(prueba)
+    creacionGraficos(mejorMaquinas)
+    graficoPrueba(prueba)
+    print("Hola")
+                
+                
+def graficoPrueba(datos):
+    # Graficar los datos
+    plt.plot(range(len(datos)), datos, marker='o')
+
+    # Etiquetas de los ejes
+    plt.xlabel('Índice')
+    plt.ylabel('Valor')
+
+    # Título del gráfico
+    plt.title('Gráfico de datos (Índice vs Valor)')
+
+    # Mostrar el gráfico
+    plt.show()
+    plt.pause(1)
+        
+    
 
 
     
 def main():
-    global Cmax
+    global Cmax, mejorMaquinas
     importar()
     crearListas()
     algoritmoInicial()
     Cmax=tiemposProgramablesAnteriores[-2]
     print(f"Cmax encontrado {Cmax}")
     print("TERMINADO")
+    mejorMaquinas=copy.deepcopy(maquinas)
     creacionGraficos(maquinas)
     G=crearGrafo()
     aco()
