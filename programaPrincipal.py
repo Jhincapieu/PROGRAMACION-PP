@@ -122,7 +122,7 @@ def asignarTrabajosCiclo(ciclo: List[Maquina]):
         trabajos[trabajoAsignar-1].maquinaActual=maquinaAsignar
         
         print(f"El trabajo: {trabajoAsignar} fue asignado a la maquina: {maquinaAsignar}, estaba en la maquina {copiaCiclos[i].numeroMaquina}")
-
+    
 
     print("Trabajos asignados correctamente a las máquinas en el ciclo.")
 
@@ -632,7 +632,7 @@ def actializarEstados():
     
     
     for maquina in maquinas:
-        if maquina.tiempoProgramable>=tiempoProgramable and maquina.tiempoProgramable!=0:
+        if maquina.tiempoProgramable==tiempoProgramable and maquina.tiempoProgramable!=0:
             if not trabajos[maquina.trabajoActual-1].ordenProcesamiento:
                 trabajos[maquina.trabajoActual-1].estadoTrabajo=EstadoTrabajo.TERMINADO
                 maquinas[maquina.numeroMaquina-1].estadoMaquina=EstadoMaquina.LIBRE
@@ -818,7 +818,7 @@ def calcularProbabilidad(hormiga, posiblesSiguientes, feromona, tiempo_ejecucion
     pos=[]
     ciclo=[]
     patron = r"Trabajo (\d+) en Maquina (\d+)"
-    
+    print(posiblesSiguientes)
     
     if not posiblesSiguientes:
         return None
@@ -870,7 +870,9 @@ def calcularProbabilidad(hormiga, posiblesSiguientes, feromona, tiempo_ejecucion
                         
                         if str(siguiente_nodo)!= "None":
                             camino.append(str(siguiente_nodo))
+                            
                             calcularProbabilidad(hormiga, posiblesSiguientes, nx.get_edge_attributes(G, 'feromona'), tiempoProgramable, 1, 1,trabajosProcesados,camino)
+                            
                             nodoActual=str(siguiente_nodo)
                             print(nodoActual)
             
@@ -991,15 +993,21 @@ def aco():
             listaMaqRes.append(copy.deepcopy(maquinas))
         #creacionGraficos(maquinas)
         #mejor_camino = min(caminosanteriores, key=lambda x: evaluar_camino(x, tiempo_ejecucion))
-        G=actualizarFeromonas(G, max(CmaxAnteriores), caminosanteriores[CmaxAnteriores.index(max(CmaxAnteriores))], evaporation_rate, Q=2)
+        G=actualizarFeromonas(G, min(CmaxAnteriores), caminosanteriores[CmaxAnteriores.index(min(CmaxAnteriores))], evaporation_rate, Q=2)
         
-        if max(CmaxAnteriores)<Cmax:
-            aa=listaMaqRes[CmaxAnteriores.index(max(CmaxAnteriores))].copy()
-            mejorCaminoT=caminosanteriores[CmaxAnteriores.index(max(CmaxAnteriores))].copy()
-            Cmax=copy.deepcopy(max(CmaxAnteriores))
+        if min(CmaxAnteriores)<Cmax:
+            if min(CmaxAnteriores)==12:
+                input("ENCONTRADO")
+            aa=listaMaqRes[CmaxAnteriores.index(min(CmaxAnteriores))].copy()
+            creacionGraficos(listaMaqRes[0])
+            input("a")
+            creacionGraficos(listaMaqRes[0])
+            mejorCaminoT=caminosanteriores[CmaxAnteriores.index(min(CmaxAnteriores))].copy()
+            Cmax=copy.deepcopy(min(CmaxAnteriores))
             mejorMaquinas.pop(0)
             mejorMaquinas=copy.deepcopy(aa)
-            creacionGraficos(mejorMaquinas)
+            print("a")
+            #creacionGraficos(mejorMaquinas)
     
     print(prueba)
     creacionGraficos(mejorMaquinas)
@@ -1033,10 +1041,27 @@ def main():
     algoritmoInicial()
     Cmax=tiemposProgramablesAnteriores[-2]
     print(f"Cmax encontrado {Cmax}")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     print("TERMINADO")
     mejorMaquinas=copy.deepcopy(maquinas)
     creacionGraficos(maquinas)
     G=crearGrafo()
     aco()
 main()
+
+
+
 
