@@ -792,6 +792,9 @@ def terminado(camino,G):
             contador+=1
     if contador==len(trabajos) or nodosVisitados==nodos:
         sale=True
+        actializarEstados()
+        calcularTiempoProgramable()
+        actializarEstados()
     return sale
 
 
@@ -943,9 +946,11 @@ def aco():
     for iteracion in range(numeroIteraciones):
         caminosanteriores=[]
         CmaxAnteriores=[]
+        listaMaqRes=[]
         tiempo_ejecucion=0
         
         for hormiga in range(numeroHormigas):
+            
             print("--------------------ESTADOS INICIALES--------------------")
             for maq in maquinas:
                 maq.estadoMaquina=EstadoMaquina.LIBRE
@@ -996,15 +1001,13 @@ def aco():
         G=actualizarFeromonas(G, min(CmaxAnteriores), caminosanteriores[CmaxAnteriores.index(min(CmaxAnteriores))], evaporation_rate, Q=2)
         
         if min(CmaxAnteriores)<Cmax:
-            if min(CmaxAnteriores)==12:
-                input("ENCONTRADO")
-            aa=listaMaqRes[CmaxAnteriores.index(min(CmaxAnteriores))].copy()
-            creacionGraficos(listaMaqRes[0])
-            input("a")
-            creacionGraficos(listaMaqRes[0])
+            #if min(CmaxAnteriores)==12:
+                #input("ENCONTRADO")
+                #creacionGraficos(listaMaqRes[CmaxAnteriores.index(min(CmaxAnteriores))])
+            aa=listaMaqRes[CmaxAnteriores.index(min(CmaxAnteriores))]
             mejorCaminoT=caminosanteriores[CmaxAnteriores.index(min(CmaxAnteriores))].copy()
             Cmax=copy.deepcopy(min(CmaxAnteriores))
-            mejorMaquinas.pop(0)
+            mejorMaquinas=[]
             mejorMaquinas=copy.deepcopy(aa)
             print("a")
             #creacionGraficos(mejorMaquinas)
@@ -1060,6 +1063,7 @@ def main():
     creacionGraficos(maquinas)
     G=crearGrafo()
     aco()
+    print("TERMINADO")
 main()
 
 
