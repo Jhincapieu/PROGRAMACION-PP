@@ -20,6 +20,8 @@ import sys
 from pandastable import Table
 
 import prueba
+listasInicialesMaquinas=[]
+repite=0
 nodoActual=None
 mejorMaquinas: List[Maquina]=[]
 G:nx.digraph
@@ -347,8 +349,9 @@ def algoritmoInicial():
           
           
           
-def algoritmoInicialMod(listasInicialesMaquinas):
-    global maquinas, trabajos, tiempoProgramable,prob, maquinasBloqueadas
+def algoritmoInicialMod():
+    global maquinas, trabajos, tiempoProgramable,prob, maquinasBloqueadas, listasInicialesMaquinas
+    copiaMaquinasIniciales=copy.deepcopy(listasInicialesMaquinas)
     #El bucle sigue hasta que todos los trabajos tengan la etiqueta de Terminados
     pendiente=True
     
@@ -491,7 +494,7 @@ def algoritmoInicialMod(listasInicialesMaquinas):
                     print("-----------------------------------------------NO SE ASIGNÓ NADA--------------------------------------------")
                     #input("Presione una tecla para continuar: ")
         
-        calcularTiempoProgramable()
+        calcularTiempoProgramableh(copiaMaquinasIniciales)
         
 
         #Al final verificamos si sigue pendiente algun trabajo
@@ -608,10 +611,10 @@ def reiniciarEstado():
         trab.tiemposProcesamiento=trab.tiemposProcesamientoGuardados.copy()
         print(trab)
 def hormiga():
-    global maqiunas,trabajos, tiempoProgramable, tiemposProgramablesAnteriores,Cmax, mejorMaquinas
+    global maqiunas,trabajos, tiempoProgramable, tiemposProgramablesAnteriores,Cmax, mejorMaquinas, listasInicialesMaquinas
     pruebaCmax=[]
     listaCaminos={}
-    iteraciones=50
+    iteraciones=5
     hormigas=5
     posiblesInicios: List[Trabajo]=[]
     probabilidades: List[pd.DataFrame]=[]
@@ -673,7 +676,7 @@ def hormiga():
                 print(listasInicialesMaquinas)
                 print("a")
             listaInicialesHormiga=copy.deepcopy(listasInicialesMaquinas)
-            algoritmoInicialMod(listasInicialesMaquinas)
+            algoritmoInicialMod()
             Cmaxh=tiemposProgramablesAnteriores[-2]
             print(Cmaxh)
             #MAXIMO LOCAL
@@ -701,7 +704,7 @@ def hormiga():
     print(mejoresIniciales)
     frecuencias_ordenadas = dict(sorted(listaCaminos.items(), key=lambda item: item[1], reverse=True))
     plt.bar(frecuencias_ordenadas.keys(), frecuencias_ordenadas.values())
-    plt.title('Frecuencia de frutas (ordenado)')
+    plt.title('Frecuencia caminos')
     plt.xlabel('camino')
     plt.ylabel('Frecuencia')
     plt.show()
@@ -808,7 +811,7 @@ def asignarTrabajo_Maquina(numeroMaquinaAsignar, numeroTrabajoAsignar):
     
                    
 def calcularTiempoProgramable():
-    global tiempoProgramable, tiemposProgramablesAnteriores,maquinas
+    global tiempoProgramable, tiemposProgramablesAnteriores,maquinas, repite
     
     
     
@@ -824,8 +827,47 @@ def calcularTiempoProgramable():
             tiempoProgramable=tiempo
             break
     if tiempoProgramable==None:
+        repite+=1
         tiempoProgramable=anterior+1
+    if tiempoProgramable==None:
+        repite+=1
+        tiempoProgramable=anterior+1
+    if repite>2:
+        repite=0
+        reiniciarEstado()
+        tiempoProgramable=0
+        tiemposProgramablesAnteriores=[]
+        
+    tiemposProgramablesAnteriores.append(tiempoProgramable)
+    print(f"El Nuevo tiempo programable es: {tiempoProgramable}")
+    print(f"Se añade a la lista de tiempos {tiemposProgramablesAnteriores}")
     
+def calcularTiempoProgramableh(copiaMaquinasIniciales):
+    global tiempoProgramable, tiemposProgramablesAnteriores,maquinas, repite,listasInicialesMaquinas
+    
+    
+    
+    todoslostiempos=[elemento.tiempoProgramable for elemento in maquinas]
+    todoslostiempos=sorted(set(todoslostiempos))
+    
+    #menortp=None
+    anterior=tiempoProgramable
+    tiempoProgramable=None
+    
+    for tiempo in todoslostiempos:
+        if tiempo not in tiemposProgramablesAnteriores:
+            tiempoProgramable=tiempo
+            break
+    if tiempoProgramable==None:
+        repite+=1
+        tiempoProgramable=anterior+1
+    if repite>3:
+        repite=0
+        reiniciarEstado()
+        tiempoProgramable=0
+        tiemposProgramablesAnteriores=[]
+        listasInicialesMaquinas=copy.deepcopy(copiaMaquinasIniciales)
+        
     tiemposProgramablesAnteriores.append(tiempoProgramable)
     print(f"El Nuevo tiempo programable es: {tiempoProgramable}")
     print(f"Se añade a la lista de tiempos {tiemposProgramablesAnteriores}")
@@ -950,68 +992,97 @@ def main():
     #G=crearGrafo()
     
     print("TERMINADO")
-main()
+#main()
 
-# class MiAplicacion(tk.Tk):
-#     def __init__(self):
-#         super().__init__()
-#         self.title("Interfaz de JobShop")
-#         self.geometry("800x400")  # Aumentar el tamaño de la ventana para acomodar los DataFrames
+import tkinter as tk
+from pandastable import Table
 
-#         # Botón para importar datos
-#         self.boton_importar = tk.Button(self, text="Importar Datos", command=self.importar_datos)
-#         self.boton_importar.pack(pady=20)
+class MiAplicacion(tk.Tk):
+    def __init__(self):
+        super().__init__()
+        self.title("Interfaz de JobShop")
+        self.geometry("900x600")  # Aumentar el tamaño de la ventana
 
-#         # Área para mostrar los DataFrames
-#         self.frame_df1 = tk.Frame(self)
-#         self.frame_df1.pack(side=tk.LEFT, padx=20, expand=True, fill=tk.BOTH)  # Para el primer DataFrame
-#         self.frame_df2 = tk.Frame(self)
-#         self.frame_df2.pack(side=tk.RIGHT, padx=20, expand=True, fill=tk.BOTH)  # Para el segundo DataFrame
+        # Estilos generales
+        self.configure(bg="#f0f0f0")  # Color de fondo
 
-#         # Botón para calcular (lo colocamos después de los DataFrames)
-#         self.boton_calcular = tk.Button(self, text="Empezar Calcular", command=self.calcular)
-#         self.boton_calcular.pack(pady=20)
+        # Título centrado
+        self.label_titulo = tk.Label(self, text="Sistema de JobShop", font=("Arial", 16, "bold"), bg="#f0f0f0")
+        self.label_titulo.pack(pady=10)
 
-#         self.df1 = None
-#         self.df2 = None
+        # Botón para importar datos
+        self.boton_importar = tk.Button(self, text="Importar Datos", command=self.importar_datos, font=("Arial", 12), bg="#4CAF50", fg="white", padx=10, pady=5)
+        self.boton_importar.pack(pady=20)
 
-#     def importar_datos(self):
-#         importar()  # Llama a la función importar para cargar los datos
+        # Crear un frame que contiene ambos DataFrames con bordes
+        self.frame_dataframes = tk.Frame(self, bg="#f0f0f0")
+        self.frame_dataframes.pack(pady=10, expand=True, fill=tk.BOTH)
 
-#         # Asignar los DataFrames globales a los atributos de la clase
-#         self.df1 = ordenMaquinas
-#         self.df2 = tiemposMaquinas
+        # Título y frame para el primer DataFrame (Orden trabajos) con borde
+        self.label_orden = tk.Label(self.frame_dataframes, text="Orden trabajos", font=("Arial", 12, "bold"), bg="#f0f0f0")
+        self.label_orden.grid(row=0, column=0, padx=20, pady=5)
+        self.frame_df1 = tk.Frame(self.frame_dataframes, bg="white", highlightbackground="black", highlightthickness=1)
+        self.frame_df1.grid(row=1, column=0, padx=20, pady=10, sticky="nsew")
 
-#         # Mostrar los DataFrames en los frames correspondientes
-#         self.mostrar_dataframe(self.df1, self.frame_df1)
-#         self.mostrar_dataframe(self.df2, self.frame_df2)
+        # Título y frame para el segundo DataFrame (Tiempos trabajos) con borde
+        self.label_tiempos = tk.Label(self.frame_dataframes, text="Tiempos trabajos", font=("Arial", 12, "bold"), bg="#f0f0f0")
+        self.label_tiempos.grid(row=0, column=1, padx=20, pady=5)
+        self.frame_df2 = tk.Frame(self.frame_dataframes, bg="white", highlightbackground="black", highlightthickness=1)
+        self.frame_df2.grid(row=1, column=1, padx=20, pady=10, sticky="nsew")
 
-#     def mostrar_dataframe(self, dataframe, frame):
-#         # Destruye el contenido anterior del frame si lo hay
-#         for widget in frame.winfo_children():
-#             widget.destroy()
+        # Configuración para que los DataFrames se expandan correctamente
+        self.frame_dataframes.grid_columnconfigure(0, weight=1)
+        self.frame_dataframes.grid_columnconfigure(1, weight=1)
+        self.frame_dataframes.grid_rowconfigure(1, weight=1)
 
-#         # Muestra el DataFrame con pandastable
-#         table = Table(frame, dataframe=dataframe)
-#         table.show()
+        # Botón para calcular (colocado debajo de los DataFrames)
+        self.boton_calcular = tk.Button(self, text="Empezar Calcular", command=self.calcular, font=("Arial", 12), bg="#FF5722", fg="white", padx=10, pady=5)
+        self.boton_calcular.pack(pady=20)
 
-#     def calcular(self):
-#         if self.df1 is not None and self.df2 is not None:
-#             print("Realizando cálculos...")
-#             algoritmoInicial()  # Ejecuta los cálculos
+        self.df1 = None
+        self.df2 = None
 
-#             Cmax = tiemposProgramablesAnteriores[-2]
-#             print(f"Cmax encontrado {Cmax}")
-#             print("TERMINADO")
+    def importar_datos(self):
+        # Llama a la función importar para cargar los datos
+        importar()
 
-#             mejorMaquinas = copy.deepcopy(maquinas)
-#             creacionGraficos(mejorMaquinas)  # Crear gráficos
-#             hormiga()  # Ejecuta el algoritmo de la hormiga
+        # Asignar los DataFrames globales a los atributos de la clase
+        self.df1 = ordenMaquinas
+        self.df2 = tiemposMaquinas
 
-#             print("TERMINADO")
-#         else:
-#             print("Por favor, importa los datos primero.")
+        # Mostrar los DataFrames en los frames correspondientes
+        self.mostrar_dataframe(self.df1, self.frame_df1)
+        self.mostrar_dataframe(self.df2, self.frame_df2)
 
-# if __name__ == "__main__":
-#     app = MiAplicacion()
-#     app.mainloop()
+    def mostrar_dataframe(self, dataframe, frame):
+        # Destruye el contenido anterior del frame si lo hay
+        for widget in frame.winfo_children():
+            widget.destroy()
+
+        # Muestra el DataFrame con pandastable
+        table = Table(frame, dataframe=dataframe)
+        table.show()
+
+    def calcular(self):
+        if self.df1 is not None and self.df2 is not None:
+            print("Realizando cálculos...")
+
+            global Cmax, mejorMaquinas
+            crearListas()
+            algoritmoInicial()
+
+            Cmax = tiemposProgramablesAnteriores[-2]
+            print(f"Cmax encontrado {Cmax}")
+            print("TERMINADO")
+            mejorMaquinas = copy.deepcopy(maquinas)
+
+            creacionGraficos(mejorMaquinas)
+            hormiga()
+
+            print("TERMINADO")
+        else:
+            print("Por favor, importa los datos primero.")
+
+if __name__ == "__main__":
+    app = MiAplicacion()
+    app.mainloop()
