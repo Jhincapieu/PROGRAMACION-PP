@@ -20,6 +20,10 @@ import sys
 from pandastable import Table
 
 import prueba
+alpha=None
+beta=None
+iteraciones=None
+hormigas=None
 listasInicialesMaquinas=[]
 repite=0
 nodoActual=None
@@ -611,19 +615,19 @@ def reiniciarEstado():
         trab.tiemposProcesamiento=trab.tiemposProcesamientoGuardados.copy()
         print(trab)
 def hormiga():
-    global maqiunas,trabajos, tiempoProgramable, tiemposProgramablesAnteriores,Cmax, mejorMaquinas, listasInicialesMaquinas
+    global maqiunas,trabajos, tiempoProgramable, tiemposProgramablesAnteriores,Cmax, mejorMaquinas, listasInicialesMaquinas,alpha, beta, iteraciones, hormigas
     pruebaCmax=[]
     listaCaminos={}
-    iteraciones=5
-    hormigas=5
+    #iteraciones=100
+    #hormigas=5
     posiblesInicios: List[Trabajo]=[]
     probabilidades: List[pd.DataFrame]=[]
     feromonaMaquinas: List[pd.DataFrame]=[]
     matricesFeromonas=pd.DataFrame
-    feromonaInicial=0.8
+    feromonaInicial=1
     ordenProcesamientoMaquina=[]
-    alpha=0.1
-    beta=2
+    #alpha=3
+    #beta=0.1
     tasaEvaporacion=0.01
     tasaAumento=5
     #Matriz feromona inicial
@@ -1001,7 +1005,7 @@ class MiAplicacion(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title("Interfaz de JobShop")
-        self.geometry("900x600")  # Aumentar el tamaño de la ventana
+        self.geometry("1200x800")  # Aumentar el tamaño de la ventana
 
         # Estilos generales
         self.configure(bg="#f0f0f0")  # Color de fondo
@@ -1035,9 +1039,38 @@ class MiAplicacion(tk.Tk):
         self.frame_dataframes.grid_columnconfigure(1, weight=1)
         self.frame_dataframes.grid_rowconfigure(1, weight=1)
 
+        # Frame para las variables globales
+        self.frame_variables = tk.Frame(self, bg="#f0f0f0")
+        self.frame_variables.pack(pady=10)
+
+        # Entradas para las variables globales
+        self.label_alpha = tk.Label(self.frame_variables, text="Alpha:", font=("Arial", 12), bg="#f0f0f0")
+        self.label_alpha.grid(row=0, column=0, padx=5, pady=5)
+        self.entry_alpha = tk.Entry(self.frame_variables)
+        self.entry_alpha.grid(row=0, column=1, padx=5, pady=5)
+
+        self.label_beta = tk.Label(self.frame_variables, text="Beta:", font=("Arial", 12), bg="#f0f0f0")
+        self.label_beta.grid(row=1, column=0, padx=5, pady=5)
+        self.entry_beta = tk.Entry(self.frame_variables)
+        self.entry_beta.grid(row=1, column=1, padx=5, pady=5)
+
+        self.label_iteraciones = tk.Label(self.frame_variables, text="Iteraciones:", font=("Arial", 12), bg="#f0f0f0")
+        self.label_iteraciones.grid(row=2, column=0, padx=5, pady=5)
+        self.entry_iteraciones = tk.Entry(self.frame_variables)
+        self.entry_iteraciones.grid(row=2, column=1, padx=5, pady=5)
+
+        self.label_hormigas = tk.Label(self.frame_variables, text="Hormigas:", font=("Arial", 12), bg="#f0f0f0")
+        self.label_hormigas.grid(row=3, column=0, padx=5, pady=5)
+        self.entry_hormigas = tk.Entry(self.frame_variables)
+        self.entry_hormigas.grid(row=3, column=1, padx=5, pady=5)
+
         # Botón para calcular (colocado debajo de los DataFrames)
         self.boton_calcular = tk.Button(self, text="Empezar Calcular", command=self.calcular, font=("Arial", 12), bg="#FF5722", fg="white", padx=10, pady=5)
         self.boton_calcular.pack(pady=20)
+
+        # Etiqueta para mostrar el resultado de Cmax
+        self.label_cmax = tk.Label(self, text="Cmax: --", font=("Arial", 14), bg="#f0f0f0")
+        self.label_cmax.pack(pady=10)
 
         self.df1 = None
         self.df2 = None
@@ -1064,6 +1097,22 @@ class MiAplicacion(tk.Tk):
         table.show()
 
     def calcular(self):
+        # Validar si los campos de entrada están completos
+        if not self.entry_alpha.get() or not self.entry_beta.get() or not self.entry_iteraciones.get() or not self.entry_hormigas.get():
+            print("Por favor, rellene todos los campos de variables (alpha, beta, iteraciones, hormigas).")
+            return
+
+        # Convertir las entradas a valores numéricos
+        try:
+            global alpha, beta, iteraciones, hormigas
+            alpha = float(self.entry_alpha.get())
+            beta = float(self.entry_beta.get())
+            iteraciones = int(self.entry_iteraciones.get())
+            hormigas = int(self.entry_hormigas.get())
+        except ValueError:
+            print("Por favor, ingrese valores numéricos válidos.")
+            return
+
         if self.df1 is not None and self.df2 is not None:
             print("Realizando cálculos...")
 
@@ -1071,15 +1120,19 @@ class MiAplicacion(tk.Tk):
             crearListas()
             algoritmoInicial()
 
+            # Realizamos el cálculo principal
             Cmax = tiemposProgramablesAnteriores[-2]
             print(f"Cmax encontrado {Cmax}")
-            print("TERMINADO")
             mejorMaquinas = copy.deepcopy(maquinas)
 
+            # Se crea el gráfico y ejecuta el resto del algoritmo
             creacionGraficos(mejorMaquinas)
             hormiga()
 
+            # Actualizamos la etiqueta con el valor de Cmax
+            self.label_cmax.config(text=f"Cmax encontrado: {Cmax}")
             print("TERMINADO")
+
         else:
             print("Por favor, importa los datos primero.")
 
