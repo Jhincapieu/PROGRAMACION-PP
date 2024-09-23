@@ -55,6 +55,7 @@ def importar():
     
     tiemposMaquinas=datos[1].str.split(expand=True)
     
+
    
    
    
@@ -1002,6 +1003,7 @@ import tkinter as tk
 from pandastable import Table
 
 class MiAplicacion(tk.Tk):
+    
     def __init__(self):
         super().__init__()
         self.title("Interfaz de JobShop")
@@ -1076,27 +1078,39 @@ class MiAplicacion(tk.Tk):
         self.df2 = None
 
     def importar_datos(self):
+        global ordenMaquinas, tiemposMaquinas
+        # Si los DataFrames ya están cargados, no hacer nada
+        
+
         # Llama a la función importar para cargar los datos
         importar()
 
-        # Asignar los DataFrames globales a los atributos de la clase
-        self.df1 = ordenMaquinas
-        self.df2 = tiemposMaquinas
+        # Asignar los DataFrames globales a los atributos de la clase y crear una copia profunda
+        self.df1_original = copy.deepcopy(ordenMaquinas)
+        self.df2_original = copy.deepcopy(tiemposMaquinas)
+
+        # Inicialmente, los DataFrames activos son las copias originales
+        self.df1 = copy.deepcopy(self.df1_original)
+        self.df2 = copy.deepcopy(self.df2_original)
 
         # Mostrar los DataFrames en los frames correspondientes
         self.mostrar_dataframe(self.df1, self.frame_df1)
         self.mostrar_dataframe(self.df2, self.frame_df2)
 
     def mostrar_dataframe(self, dataframe, frame):
-        # Destruye el contenido anterior del frame si lo hay
+    # Destruye el contenido anterior del frame si lo hay
         for widget in frame.winfo_children():
             widget.destroy()
 
         # Muestra el DataFrame con pandastable
-        table = Table(frame, dataframe=dataframe)
+        table = Table(frame, dataframe=dataframe, editable=False)
         table.show()
+        
+
 
     def calcular(self):
+        
+        
         # Validar si los campos de entrada están completos
         if not self.entry_alpha.get() or not self.entry_beta.get() or not self.entry_iteraciones.get() or not self.entry_hormigas.get():
             print("Por favor, rellene todos los campos de variables (alpha, beta, iteraciones, hormigas).")
@@ -1104,6 +1118,7 @@ class MiAplicacion(tk.Tk):
 
         # Convertir las entradas a valores numéricos
         try:
+            
             global alpha, beta, iteraciones, hormigas
             alpha = float(self.entry_alpha.get())
             beta = float(self.entry_beta.get())
@@ -1115,6 +1130,11 @@ class MiAplicacion(tk.Tk):
 
         if self.df1 is not None and self.df2 is not None:
             print("Realizando cálculos...")
+
+            # Restablecer los DataFrames a su estado original usando las copias profundas
+            self.df1 = copy.deepcopy(self.df1_original)
+            self.df2 = copy.deepcopy(self.df2_original)
+            
 
             global Cmax, mejorMaquinas
             crearListas()
