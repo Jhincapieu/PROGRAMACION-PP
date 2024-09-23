@@ -19,7 +19,6 @@ import copy
 import sys
 from pandastable import Table
 
-import prueba
 alpha=None
 beta=None
 iteraciones=None
